@@ -1,0 +1,76 @@
+#=======================================================================================
+# Global Config
+#=======================================================================================
+spring:
+  application:
+    name: adminservice
+  profiles:
+    active: "dev"
+  security:
+    basic:
+      enabled: false
+    oauth2:
+      client:
+        registration:
+          custom:
+            authorization-grant-type: client_credentials
+            client-id: callcentre-admin-project
+            client-secret: 'b3c51801-641b-4c7e-93ad-1b5d1acae556'
+            provider: customprovider
+        provider:
+          customprovider:
+            token-uri: https://keycloak.auth.betalab.rp.bt.com/auth/realms/master/protocol/openid-connect/token
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.auth.betalab.rp.bt.com/auth/realms/master
+
+# Actuator endpoints
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /_/
+      path-mapping:
+        health: health
+  endpoint:
+    health:
+      enabled: true
+  exposure.include: '*'
+  cors:
+    allowed-origins: '*'
+    allowed-methods: GET,POST, PUT
+    allowed-headers: '*'
+
+adminservice:
+  queueAddress: SETINENV
+  queuePort: SETINENV
+  queueUser: SETINENV
+  queuePassword: SETINENV
+  queueName: SETINENV
+  loadGeneratorUrl: SETINENV
+  callReportingUrl: SETINENV
+  kubernetesAPIAddress: SETINENV
+  kubernetesAPIPort: SETINENV
+  kubernetesToken: SETINENV
+  kubernetesNameSpace: SETINENV
+  workerImage: SETINENV
+  myReportingUrl: SETINENV
+
+---
+#=======================================================================================
+# Development Profile Config
+#=======================================================================================
+spring:
+  profiles: dev
+server:
+  port: 8080
+
+
+---
+#=======================================================================================
+# Production ProfileConfig - ALL CONFIG SHOULD BE PASSED AS ENV VARIABLES
+#=======================================================================================
+spring:
+  profiles: production
+server:
+  port: 8080

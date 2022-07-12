@@ -1,0 +1,140 @@
+/**
+ * @author Joost Noppen (611749237), BetaLab, R&I
+ * @version 0.9
+ * <p>
+ * Copyright (c) British Telecommunications plc 2018
+ */
+
+package com.bt.betalab.callcentre.adminservice.kubernetes;
+
+import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
+import com.bt.betalab.callcentre.adminservice.exceptions.AdminServiceException;
+import com.bt.betalab.callcentre.adminservice.logging.LogLevel;
+import com.bt.betalab.callcentre.adminservice.logging.Logger;
+import com.bt.betalab.callcentre.adminservice.logging.Messages;
+import io.kubernetes.client.custom.V1Patch;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import io.kubernetes.client.openapi.models.V1DeleteOptionsBuilder;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.util.Config;
+
+public class KubernetesAPIClient {
+
+    private static final String PROPAGATION_POLICY_BACKGROUND = "Background";
+    private static final String NOT_FOUND_MSG = "Not Found";
+
+    String kubernetesNameSpace;
+
+    AppsV1Api appsV1APIClient;
+
+    boolean validConfig = false;
+
+    public KubernetesAPIClient(AdminServiceConfig config) {
+        validConfig = validateConfig(   config.getKubernetesAPIAddress(),
+                                        config.getKubernetesAPIPort(),
+                                        config.getKubernetesToken(),
+                                        config.getKubernetesNameSpace());
+
+        if (validConfig) {
+            ApiClient apiClient = Config.fromToken(config.getKubernetesAPIAddress() + ":" + config.getKubernetesAPIPort(), config.getKubernetesToken(), false);
+            Configuration.setDefaultApiClient(apiClient);
+            apiClient.setDebugging(System.getenv("DEBUG_MODE") != null);
+            appsV1APIClient = new AppsV1Api(apiClient);
+            this.kubernetesNameSpace = config.getKubernetesNameSpace();
+        }
+    }
+
+    public boolean validateConfig(String kubernetesAPIAddress, String kubernetesAPIPort, String kubernetesToken, String kubernetesNameSpace) {
+        return (kubernetesAPIAddress != null && kubernetesAPIPort!= null && kubernetesToken != null && kubernetesNameSpace != null);
+    }
+
+    public void createWorkers(int target, AdminServiceConfig config) throws AdminServiceException {
+        if (validConfig) {
+            try {
+                if (existsDeployment()) {
+                    V1Patch body = KubernetesBodyFactory.producePatchBody(target);
+                    appsV1APIClient.patchNamespacedDeploymentScale("workers", kubernetesNameSpace, body, "false", null, null, null);
+                } else {
+                    V1Deployment body = KubernetesBodyFactory.produceDeploymentBody("workers", config.getWorkerImage(), kubernetesNameSpace, target, config.getMyReportingUrl());
+                    appsV1APIClient.createNamespacedDeployment(kubernetesNameSpace, body, "false", null, null);
+                }
+                if (!waitForWorkersToArrive(target)) { throw new AdminServiceException(); }
+            } catch (ApiException e) {
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+                throw new AdminServiceException();
+            }
+        } else {
+            Logger.log(Messages.INVALIDKUBERNETESCONFIGURATIONMESSAGE, LogLevel.ERROR);
+            throw new AdminServiceException();
+        }
+    }
+
+    public void deleteWorkers() throws AdminServiceException {
+        if (validConfig) {
+            try {
+                if (!existsDeployment()) {
+                    V1DeleteOptions options = KubernetesBodyFactory.produceDeleteOptionsBody();
+                    appsV1APIClient.deleteNamespacedDeployment("workers", kubernetesNameSpace, "true", null, 0, false, KubernetesAPIClient.PROPAGATION_POLICY_BACKGROUND, options);
+                }
+            } catch (ApiException e) {
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+                throw new AdminServiceException();
+            }
+        } else {
+            Logger.log(Messages.INVALIDKUBERNETESCONFIGURATIONMESSAGE, LogLevel.ERROR);
+            throw new AdminServiceException();
+        }
+    }
+
+    public int activeWorkers() throws AdminServiceException {
+        if (validConfig) {
+            try {
+                if (existsDeployment()) {
+                    return appsV1APIClient.readNamespacedDeploymentStatus("workers", kubernetesNameSpace, "false")
+                            .getStatus()
+                            .getAvailableReplicas();
+                }
+            } catch (ApiException e) {
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+            }
+        } else {
+            Logger.log(Messages.INVALIDKUBERNETESCONFIGURATIONMESSAGE, LogLevel.ERROR);
+        }
+        throw new AdminServiceException();
+    }
+
+    public boolean waitForWorkersToArrive(int target) {
+        int timeOut = 300000; // Timeout is five minutes
+        int currentTime = 0;
+
+        while (currentTime < timeOut) {
+            try {
+                Thread.sleep(1000);
+                currentTime += 1000;
+                if (activeWorkers() == target) { return true; };
+            } catch (Exception e) {
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+            }
+        }
+        return false;
+    }
+
+    public boolean existsDeployment() throws AdminServiceException {
+        if (validConfig) {
+            try {
+                appsV1APIClient.readNamespacedDeployment("workers", kubernetesNameSpace, "false", null, null);
+                return true;
+            } catch (ApiException e) {
+                if (e.getCode() == 404) { return false; }
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+            }
+        } else {
+            Logger.log(Messages.INVALIDKUBERNETESCONFIGURATIONMESSAGE, LogLevel.ERROR);
+        }
+        throw new AdminServiceException();
+    }
+}
