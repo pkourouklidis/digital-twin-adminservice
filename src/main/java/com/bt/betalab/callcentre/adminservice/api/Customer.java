@@ -13,35 +13,35 @@ public class Customer {
     private boolean isUnderstanding;
     private boolean isHappy;
 
-    public boolean isHappyToWait() {
+    public boolean getIsHappyToWait() {
         return isHappyToWait;
     }
 
-    public void setHappyToWait(boolean happyToWait) {
+    public void setIsHappyToWait(boolean happyToWait) {
         isHappyToWait = happyToWait;
     }
 
-    public boolean isHappyToWaitForService() {
+    public boolean getIsHappyToWaitForService() {
         return isHappyToWaitForService;
     }
 
-    public void setHappyToWaitForService(boolean happyToWaitForService) {
+    public void setIsHappyToWaitForService(boolean happyToWaitForService) {
         isHappyToWaitForService = happyToWaitForService;
     }
 
-    public boolean isUnderstanding() {
+    public boolean getIsUnderstanding() {
         return isUnderstanding;
     }
 
-    public void setUnderstanding(boolean understanding) {
+    public void setIsUnderstanding(boolean understanding) {
         isUnderstanding = understanding;
     }
 
-    public boolean isHappy() {
+    public boolean getIsHappy() {
         return isHappy;
     }
 
-    public void setHappy(boolean happy) {
+    public void setIsHappy(boolean happy) {
         isHappy = happy;
     }
 }

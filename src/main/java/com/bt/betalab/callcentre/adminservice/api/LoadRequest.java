@@ -9,7 +9,7 @@ package com.bt.betalab.callcentre.adminservice.api;
 
 import com.bt.betalab.callcentre.adminservice.model.Simulation;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 public class LoadRequest {
     private boolean on;
@@ -25,7 +25,7 @@ public class LoadRequest {
 
     private String simulationId;
 
-    private Timestamp simulationStartTime;
+    private Instant simulationStartTime;
 
     public LoadRequest(boolean start, Simulation simulation) {
         this.on = start;
@@ -66,7 +66,7 @@ public class LoadRequest {
         return simulationId;
     }
 
-    public Timestamp getSimulationStartTime() {
+    public Instant getSimulationStartTime() {
         return simulationStartTime;
     }
 }

@@ -10,13 +10,12 @@ package com.bt.betalab.callcentre.adminservice.model;
 
 import com.bt.betalab.callcentre.adminservice.api.SimulationRequest;
 
-import java.sql.Timestamp;
-import java.util.Date;
+import java.time.Instant;
 import java.util.UUID;
 
 public class Simulation {
     private String simulationId = UUID.randomUUID().toString();
-    private Timestamp simulationStartTime = new Timestamp((new Date()).getTime());
+    private Instant simulationStartTime = Instant.now();
 
     private int callDelay = 50;
     private int difficultyBias = 50;
@@ -53,7 +52,7 @@ public class Simulation {
         return simulationId;
     }
 
-    public Timestamp getSimulationStartTime() {
+    public Instant getSimulationStartTime() {
         return simulationStartTime;
     }
 

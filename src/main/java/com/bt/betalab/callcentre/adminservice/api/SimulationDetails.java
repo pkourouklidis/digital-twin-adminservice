@@ -8,10 +8,11 @@
 package com.bt.betalab.callcentre.adminservice.api;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 public class SimulationDetails {
     private String simulationId;
-    private Timestamp simulationStartTime;
+    private Instant simulationStartTime;
 
     public String getSimulationId() {
         return simulationId;
@@ -21,11 +22,11 @@ public class SimulationDetails {
         this.simulationId = simulationId;
     }
 
-    public Timestamp getSimulationStartTime() {
+    public Instant getSimulationStartTime() {
         return simulationStartTime;
     }
 
-    public void setSimulationStartTime(Timestamp simulationStartTime) {
+    public void setSimulationStartTime(Instant simulationStartTime) {
         this.simulationStartTime = simulationStartTime;
     }
 }

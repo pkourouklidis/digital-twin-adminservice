@@ -19,6 +19,45 @@
 		<java.version>17</java.version>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>active-by-default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<coverage.line>0.0</coverage.line>
+				<coverage.branch>0.0</coverage.branch>
+			</properties>
+		</profile>
+		<profile>
+			<id>master-branch</id>
+			<activation>
+				<property>
+					<name>branch</name>
+					<value>master</value>
+				</property>
+			</activation>
+			<properties>
+				<coverage.line>0.0</coverage.line>
+				<coverage.branch>0.0</coverage.branch>
+			</properties>
+		</profile>
+		<profile>
+			<id>release-branch</id>
+			<activation>
+				<property>
+					<name>branch</name>
+					<value>release</value>
+				</property>
+			</activation>
+			<properties>
+				<coverage.line>0.0</coverage.line>
+				<coverage.branch>0.0</coverage.branch>
+			</properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -68,6 +107,11 @@
 			<artifactId>client-java</artifactId>
 			<version>9.0.0</version>
 			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 	</dependencies>
 

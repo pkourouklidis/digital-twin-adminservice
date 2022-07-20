@@ -16,19 +16,19 @@ public class WorkerDetails {
         this.isFast = isFast;
     }
 
-    public boolean isSkilled() {
+    public boolean getIsSkilled() {
         return isSkilled;
     }
 
-    public void setSkilled(boolean skilled) {
+    public void setIsSkilled(boolean skilled) {
         isSkilled = skilled;
     }
 
-    public boolean isFast() {
+    public boolean getIsFast() {
         return isFast;
     }
 
-    public void setFast(boolean fast) {
+    public void setIsFast(boolean fast) {
         isFast = fast;
     }
 }

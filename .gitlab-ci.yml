@@ -1,0 +1,26 @@
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  PROJECT_NAME: "callcentre-digitaltwin"
+  PROJECT_COMPONENT: "admin-service"
+  DOCKER_PROJECT_NAME: "betalab-callcentre-digitaltwin"
+  KUBERNETES_NAMESPACE: "project-callcentre"
+
+before_script:
+  - export CI_MERGE_REQUEST_TARGET_BRANCH_NAME=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:=$CI_COMMIT_REF_NAME}
+
+stages:
+  - build
+
+build:
+  image: maven:3.8-amazoncorretto-17
+  stage: build
+  script:
+    - mvn -Dbranch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME clean compile package com.google.cloud.tools:jib-maven-plugin:3.2.1:build -Dimage=registry.docker.nat.bt.com/$DOCKER_PROJECT_NAME/$PROJECT_NAME-$PROJECT_COMPONENT:$CI_COMMIT_SHA -Djib.to.auth.username=$DOCKER_REGISTRY_USER -Djib.to.auth.password=$DOCKER_REGISTRY_PASSWORD -Djib.allowInsecureRegistries=true
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 week
+  only:
+    - master
+    - release
