@@ -12,7 +12,6 @@ import com.bt.betalab.callcentre.adminservice.api.SimulationDetails;
 import com.bt.betalab.callcentre.adminservice.api.SimulationRequest;
 import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
 import com.bt.betalab.callcentre.adminservice.exceptions.AdminServiceException;
-import com.bt.betalab.callcentre.adminservice.kubernetes.KubernetesAPIClient;
 import com.bt.betalab.callcentre.adminservice.logging.LogLevel;
 import com.bt.betalab.callcentre.adminservice.logging.Logger;
 import com.bt.betalab.callcentre.adminservice.logging.Messages;
@@ -37,6 +36,10 @@ public class SimulationService {
     @Autowired
     WebClientFactory clientFactory;
     Simulation simulation = new Simulation();
+
+    @Autowired
+    KubernetesService kubernetesService;
+
     public SimulationDetails createSimulation(SimulationRequest request, AdminServiceConfig config) throws AdminServiceException {
         if (simulation.getStatus().equals("running") || simulation.getStatus().equals("stopped")) {
             simulation.setStatus("creating");
@@ -85,7 +88,7 @@ public class SimulationService {
     }
 
     public Simulation getSimulationStatus(AdminServiceConfig config) throws AdminServiceException {
-        simulation.setActiveWorkers(getActiveWorkerCount(config));
+        simulation.setActiveWorkers(getActiveWorkerCount());
         simulation.setQueueDepth(getQueueDepth(config));
         return simulation;
     }
@@ -109,18 +112,15 @@ public class SimulationService {
     }
 
     public void startStopWorkers(boolean start, AdminServiceConfig config) throws AdminServiceException {
-        KubernetesAPIClient apiClient = new KubernetesAPIClient(config);
-
         if (start) {
-            apiClient.createWorkers(simulation.getWorkers(), config);
+            kubernetesService.createWorkers(simulation.getWorkers(), config);
         } else {
-            apiClient.deleteWorkers();
+            kubernetesService.deleteWorkers();
         }
     }
 
-    public int getActiveWorkerCount(AdminServiceConfig config) throws AdminServiceException {
-        KubernetesAPIClient apiClient = new KubernetesAPIClient(config);
-        return apiClient.activeWorkers();
+    public int getActiveWorkerCount() throws AdminServiceException {
+        return kubernetesService.activeWorkers();
     }
 
     public void purgeQueue(AdminServiceConfig config) throws AdminServiceException {
