@@ -113,7 +113,7 @@ public class SimulationService {
 
     public void startStopWorkers(boolean start, AdminServiceConfig config) throws AdminServiceException {
         if (start) {
-            kubernetesService.createWorkers(simulation.getWorkers(), config);
+            kubernetesService.createWorkers(simulation.getWorkers(), simulation.getWorkerSkillBias(), simulation.getWorkerSpeedBias(), config);
         } else {
             kubernetesService.deleteWorkers();
         }

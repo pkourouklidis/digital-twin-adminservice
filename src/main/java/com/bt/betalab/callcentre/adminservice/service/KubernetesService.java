@@ -43,14 +43,14 @@ public class KubernetesService {
         this.kubernetesNameSpace = config.getKubernetesNameSpace();
     }
 
-    public void createWorkers(int target, AdminServiceConfig config) throws AdminServiceException {
+    public void createWorkers(int target, int skillBias, int speedBias, AdminServiceConfig config) throws AdminServiceException {
         if (validConfig) {
             try {
                 if (existsDeployment()) {
                     V1Patch body = KubernetesBodyFactory.producePatchBody(target);
                     appsV1APIClient.patchNamespacedDeploymentScale("workers", kubernetesNameSpace, body, "false", null, null, null);
                 } else {
-                    V1Deployment body = KubernetesBodyFactory.produceDeploymentBody("workers", config.getWorkerImage(), kubernetesNameSpace, target, config.getMyReportingUrl());
+                    V1Deployment body = KubernetesBodyFactory.produceDeploymentBody("workers", config.getWorkerImage(), kubernetesNameSpace, target, config.getMyReportingUrl(), skillBias, speedBias);
                     appsV1APIClient.createNamespacedDeployment(kubernetesNameSpace, body, "false", null, null);
                 }
                 if (!waitForWorkersToArrive(target)) { throw new AdminServiceException(); }
