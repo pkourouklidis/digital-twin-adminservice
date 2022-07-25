@@ -24,6 +24,10 @@ public class Simulation {
     private int understandingBias = 50;
     private int workers = 0;
 
+    private int workerSkillBias = 50;
+
+    private int workerSpeedBias = 50;
+
     private int queueDepth = 0;
     private int activeWorkers = 0;
     private String status = "stopped";
@@ -37,6 +41,8 @@ public class Simulation {
         this.serviceTimeBias = request.getServiceTimeBias();
         this.understandingBias = request.getUnderstandingBias();
         this.workers = request.getWorkers();
+        this.workerSkillBias = request.getWorkerSkillBias();
+        this.workerSpeedBias = request.getWorkerSpeedBias();
     }
 
     public void update(SimulationRequest request) {
@@ -46,6 +52,8 @@ public class Simulation {
         this.serviceTimeBias = request.getServiceTimeBias();
         this.understandingBias = request.getUnderstandingBias();
         this.workers = request.getWorkers();
+        this.workerSkillBias = request.getWorkerSkillBias();
+        this.workerSpeedBias = request.getWorkerSpeedBias();
     }
 
     public String getSimulationId() {
@@ -78,6 +86,14 @@ public class Simulation {
 
     public int getWorkers() {
         return workers;
+    }
+
+    public int getWorkerSkillBias() {
+        return workerSkillBias;
+    }
+
+    public int getWorkerSpeedBias() {
+        return workerSpeedBias;
     }
 
     public int getQueueDepth() {

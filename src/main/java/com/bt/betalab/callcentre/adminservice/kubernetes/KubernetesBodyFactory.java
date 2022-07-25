@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 public class KubernetesBodyFactory {
     private static final String PROPAGATION_POLICY_BACKGROUND = "Background";
-    public static V1Deployment produceDeploymentBody(String name, String imageName, String kubernetesNamesSpace, int replicas, String reportUrl) {
+    public static V1Deployment produceDeploymentBody(String name, String imageName, String kubernetesNamesSpace, int replicas, String reportUrl, int skillBias, int speedBias) {
         V1Deployment returnObj = new V1Deployment();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
@@ -46,10 +46,22 @@ public class KubernetesBodyFactory {
         container.imagePullPolicy("Always");
 
         ArrayList<V1EnvVar> env = new ArrayList<>();
-        V1EnvVar envVar = new V1EnvVar();
-        envVar.setName("REPORT_URL");
-        envVar.setValue(reportUrl);
-        env.add(envVar);
+
+        V1EnvVar urlEnvVar = new V1EnvVar();
+        urlEnvVar.setName("REPORT_URL");
+        urlEnvVar.setValue(reportUrl);
+        env.add(urlEnvVar);
+
+        V1EnvVar skillEnvVar = new V1EnvVar();
+        skillEnvVar.setName("SKILL_BIAS");
+        skillEnvVar.setValue(Integer.valueOf(skillBias).toString());
+        env.add(skillEnvVar);
+
+        V1EnvVar speedEnvVar = new V1EnvVar();
+        speedEnvVar.setName("SPEED_BIAS");
+        speedEnvVar.setValue(Integer.valueOf(speedBias).toString());
+        env.add(speedEnvVar);
+
         container.setEnv(env);
 
         V1ContainerPort port = new V1ContainerPort();

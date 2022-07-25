@@ -15,6 +15,10 @@ public class SimulationRequest {
     private int understandingBias;
     private int workers;
 
+    private int workerSkillBias;
+
+    private int workerSpeedBias;
+
     public int getCallDelay() {
         return callDelay;
     }
@@ -61,5 +65,21 @@ public class SimulationRequest {
 
     public void setWorkers(int workers) {
         this.workers = workers;
+    }
+
+    public int getWorkerSkillBias() {
+        return workerSkillBias;
+    }
+
+    public void setWorkerSkillBias(int workerSkillBias) {
+        this.workerSkillBias = workerSkillBias;
+    }
+
+    public int getWorkerSpeedBias() {
+        return workerSpeedBias;
+    }
+
+    public void setWorkerSpeedBias(int workerSpeedBias) {
+        this.workerSpeedBias = workerSpeedBias;
     }
 }
