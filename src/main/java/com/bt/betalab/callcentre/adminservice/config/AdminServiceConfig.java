@@ -19,12 +19,6 @@ public class AdminServiceConfig {
     private String loadGeneratorUrl;
     private String callReportingUrl;
 
-    private String kubernetesAPIAddress;
-
-    private String kubernetesAPIPort;
-
-    private String kubernetesToken;
-
     private String kubernetesNameSpace;
 
     private String workerImage;
@@ -89,30 +83,6 @@ public class AdminServiceConfig {
 
     public void setCallReportingUrl(String callReportingUrl) {
         this.callReportingUrl = callReportingUrl;
-    }
-
-    public String getKubernetesAPIAddress() {
-        return kubernetesAPIAddress;
-    }
-
-    public void setKubernetesAPIAddress(String kubernetesAPIAddress) {
-        this.kubernetesAPIAddress = kubernetesAPIAddress;
-    }
-
-    public String getKubernetesAPIPort() {
-        return kubernetesAPIPort;
-    }
-
-    public void setKubernetesAPIPort(String kubernetesAPIPort) {
-        this.kubernetesAPIPort = kubernetesAPIPort;
-    }
-
-    public String getKubernetesToken() {
-        return kubernetesToken;
-    }
-
-    public void setKubernetesToken(String kubernetesToken) {
-        this.kubernetesToken = kubernetesToken;
     }
 
     public String getKubernetesNameSpace() {

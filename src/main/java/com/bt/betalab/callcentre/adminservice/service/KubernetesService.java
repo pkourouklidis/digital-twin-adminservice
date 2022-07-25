@@ -5,10 +5,11 @@
  * Copyright (c) British Telecommunications plc 2018
  */
 
-package com.bt.betalab.callcentre.adminservice.kubernetes;
+package com.bt.betalab.callcentre.adminservice.service;
 
 import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
 import com.bt.betalab.callcentre.adminservice.exceptions.AdminServiceException;
+import com.bt.betalab.callcentre.adminservice.kubernetes.KubernetesBodyFactory;
 import com.bt.betalab.callcentre.adminservice.logging.LogLevel;
 import com.bt.betalab.callcentre.adminservice.logging.Logger;
 import com.bt.betalab.callcentre.adminservice.logging.Messages;
@@ -18,11 +19,13 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import io.kubernetes.client.openapi.models.V1DeleteOptionsBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.util.Config;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-public class KubernetesAPIClient {
+@Service
+public class KubernetesService {
 
     private static final String PROPAGATION_POLICY_BACKGROUND = "Background";
     private static final String NOT_FOUND_MSG = "Not Found";
@@ -33,23 +36,11 @@ public class KubernetesAPIClient {
 
     boolean validConfig = false;
 
-    public KubernetesAPIClient(AdminServiceConfig config) {
-        validConfig = validateConfig(   config.getKubernetesAPIAddress(),
-                                        config.getKubernetesAPIPort(),
-                                        config.getKubernetesToken(),
-                                        config.getKubernetesNameSpace());
-
-        if (validConfig) {
-            ApiClient apiClient = Config.fromToken(config.getKubernetesAPIAddress() + ":" + config.getKubernetesAPIPort(), config.getKubernetesToken(), false);
-            Configuration.setDefaultApiClient(apiClient);
-            apiClient.setDebugging(System.getenv("DEBUG_MODE") != null);
-            appsV1APIClient = new AppsV1Api(apiClient);
-            this.kubernetesNameSpace = config.getKubernetesNameSpace();
-        }
-    }
-
-    public boolean validateConfig(String kubernetesAPIAddress, String kubernetesAPIPort, String kubernetesToken, String kubernetesNameSpace) {
-        return (kubernetesAPIAddress != null && kubernetesAPIPort!= null && kubernetesToken != null && kubernetesNameSpace != null);
+    public KubernetesService(AdminServiceConfig config, ApiClient apiClient) {
+        Configuration.setDefaultApiClient(apiClient);
+        apiClient.setDebugging(System.getenv("DEBUG_MODE") != null);
+        appsV1APIClient = new AppsV1Api(apiClient);
+        this.kubernetesNameSpace = config.getKubernetesNameSpace();
     }
 
     public void createWorkers(int target, AdminServiceConfig config) throws AdminServiceException {
@@ -78,7 +69,7 @@ public class KubernetesAPIClient {
             try {
                 if (!existsDeployment()) {
                     V1DeleteOptions options = KubernetesBodyFactory.produceDeleteOptionsBody();
-                    appsV1APIClient.deleteNamespacedDeployment("workers", kubernetesNameSpace, "true", null, 0, false, KubernetesAPIClient.PROPAGATION_POLICY_BACKGROUND, options);
+                    appsV1APIClient.deleteNamespacedDeployment("workers", kubernetesNameSpace, "true", null, 0, false, KubernetesService.PROPAGATION_POLICY_BACKGROUND, options);
                 }
             } catch (ApiException e) {
                 Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
