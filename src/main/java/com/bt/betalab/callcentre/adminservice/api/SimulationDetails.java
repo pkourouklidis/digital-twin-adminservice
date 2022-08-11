@@ -14,6 +14,11 @@ public class SimulationDetails {
     private String simulationId;
     private Instant simulationStartTime;
 
+    public SimulationDetails(String id, Instant startTime) {
+        this.simulationId = id;
+        this.simulationStartTime = startTime;
+    }
+
     public String getSimulationId() {
         return simulationId;
     }

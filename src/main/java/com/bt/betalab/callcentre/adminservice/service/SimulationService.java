@@ -41,50 +41,60 @@ public class SimulationService {
     KubernetesService kubernetesService;
 
     public SimulationDetails createSimulation(SimulationRequest request, AdminServiceConfig config) throws AdminServiceException {
-        if (simulation.getStatus().equals("running") || simulation.getStatus().equals("stopped")) {
+        if (simulation.getStatus().equals("stopped")) {
             simulation.setStatus("creating");
-            if (simulation.getStatus().equals("running")) {
-                stopSimulation(config);
-            }
             simulation = new Simulation(request);
-            simulation.setStatus("stopped");
-            startSimulation(config);
+            startStopWorkers(true, config);
+            startStopLoadGenerator(true, config);
+            simulation.setStatus("running");
+            return new SimulationDetails(simulation.getSimulationId(), simulation.getSimulationStartTime());
         }
         throw new AdminServiceException();
     }
 
     public void updateSimulation(SimulationRequest request, AdminServiceConfig config) throws AdminServiceException {
-        if (!simulation.getStatus().equals("failed")) {
+        if (simulation.getStatus().equals("running") || simulation.getStatus().equals("paused")) {
+            if (simulation.getStatus().equals("running")) { pauseSimulation(config); }
+            simulation.setStatus("updating");
             simulation.update(request);
+            startSimulation(config);
+        } else {
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
     }
 
     public void startSimulation(AdminServiceConfig config) throws AdminServiceException {
-        if (simulation.getStatus().equals("stopped") || simulation.getStatus().equals("paused")) {
+        if (simulation.getStatus().equals("paused")) {
             simulation.setStatus("starting");
             startStopWorkers(true, config);
             startStopLoadGenerator(true, config);
             simulation.setStatus("running");
+        } else {
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
     }
 
     public void pauseSimulation(AdminServiceConfig config) throws AdminServiceException {
         if (simulation.getStatus().equals("running")) {
+            simulation.setStatus("pausing");
             startStopLoadGenerator(false, config);
             startStopWorkers(false, config);
+            simulation.setStatus("paused");
+        } else {
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
     }
 
     public void stopSimulation(AdminServiceConfig config) throws AdminServiceException {
-        if (simulation.getStatus().equals("running")) {
+        if (simulation.getStatus().equals("running") || simulation.getStatus().equals("paused")) {
+            simulation.setStatus("stopping");
             startStopLoadGenerator(false, config);
             startStopWorkers(false, config);
             purgeQueue(config);
+            simulation.setStatus("stopped");
+        } else {
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
     }
 
     public Simulation getSimulationStatus(AdminServiceConfig config) throws AdminServiceException {
@@ -113,7 +123,7 @@ public class SimulationService {
 
     public void startStopWorkers(boolean start, AdminServiceConfig config) throws AdminServiceException {
         if (start) {
-            kubernetesService.createWorkers(simulation.getWorkers(), simulation.getWorkerSkillBias(), simulation.getWorkerSpeedBias(), config);
+            kubernetesService.createWorkers(simulation.getWorkers(), simulation.getWorkerSkillBias(), simulation.getWorkerSpeedBias(), simulation.getNormalWaitTime(), simulation.getNormalServiceTime(), simulation.getBounceWaitTime(), config);
         } else {
             kubernetesService.deleteWorkers();
         }
@@ -159,7 +169,7 @@ public class SimulationService {
             Connection connection = conFactory.newConnection();
             Channel channel = connection.createChannel();
 
-            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(config.getQueueName(), false, false, false, null);
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(config.getQueueName(), true, false, false, null);
             return declareOk.getMessageCount();
         } catch (IOException e) {
             Logger.log(Messages.CHANNELERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);

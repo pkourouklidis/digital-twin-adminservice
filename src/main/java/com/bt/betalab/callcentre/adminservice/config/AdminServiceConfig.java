@@ -7,12 +7,14 @@
 
 package com.bt.betalab.callcentre.adminservice.config;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConfigurationProperties(prefix="adminservice")
 public class AdminServiceConfig {
     private String queueAddress;
-    private String queuePort;
+    private String queuePortString;
     private String queueUser;
     private String queuePassword;
     private String queueName;
@@ -25,6 +27,10 @@ public class AdminServiceConfig {
 
     private String myReportingUrl;
 
+    private String myReportingUrlUser;
+
+    private String myReportingUrlPassword;
+
     public String getQueueAddress() {
         return queueAddress;
     }
@@ -35,14 +41,14 @@ public class AdminServiceConfig {
 
     public int getQueuePort() {
         try {
-            return Integer.valueOf(queuePort);
+            return Integer.valueOf(queuePortString);
         } catch (NumberFormatException e) {
             return -1;
         }
     }
 
-    public void setQueuePort(String queuePort) {
-        this.queuePort = queuePort;
+    public void setQueuePortString(String queuePort) {
+        this.queuePortString = queuePort;
     }
 
     public String getQueueUser() {
@@ -107,5 +113,21 @@ public class AdminServiceConfig {
 
     public void setMyReportingUrl(String myReportingUrl) {
         this.myReportingUrl = myReportingUrl;
+    }
+
+    public String getMyReportingUrlUser() {
+        return myReportingUrlUser;
+    }
+
+    public void setMyReportingUrlUser(String myReportingUrlUser) {
+        this.myReportingUrlUser = myReportingUrlUser;
+    }
+
+    public String getMyReportingUrlPassword() {
+        return myReportingUrlPassword;
+    }
+
+    public void setMyReportingUrlPassword(String myReportingUrlPassword) {
+        this.myReportingUrlPassword = myReportingUrlPassword;
     }
 }

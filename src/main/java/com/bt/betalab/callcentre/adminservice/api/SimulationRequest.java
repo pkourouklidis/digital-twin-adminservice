@@ -14,10 +14,14 @@ public class SimulationRequest {
     private int serviceTimeBias;
     private int understandingBias;
     private int workers;
-
     private int workerSkillBias;
-
     private int workerSpeedBias;
+
+    private int normalWaitTime;
+
+    private int normalServiceTime;
+
+    private int bounceWaitTime;
 
     public int getCallDelay() {
         return callDelay;
@@ -81,5 +85,29 @@ public class SimulationRequest {
 
     public void setWorkerSpeedBias(int workerSpeedBias) {
         this.workerSpeedBias = workerSpeedBias;
+    }
+
+    public int getNormalWaitTime() {
+        return normalWaitTime;
+    }
+
+    public void setNormalWaitTime(int normalWaitTime) {
+        this.normalWaitTime = normalWaitTime;
+    }
+
+    public int getNormalServiceTime() {
+        return normalServiceTime;
+    }
+
+    public void setNormalServiceTime(int normalServiceTime) {
+        this.normalServiceTime = normalServiceTime;
+    }
+
+    public int getBounceWaitTime() {
+        return bounceWaitTime;
+    }
+
+    public void setBounceWaitTime(int bounceWaitTime) {
+        this.bounceWaitTime = bounceWaitTime;
     }
 }

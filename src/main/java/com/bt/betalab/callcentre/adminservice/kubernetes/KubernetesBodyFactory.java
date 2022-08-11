@@ -7,16 +7,19 @@
 
 package com.bt.betalab.callcentre.adminservice.kubernetes;
 
+import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
 import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.models.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class KubernetesBodyFactory {
     private static final String PROPAGATION_POLICY_BACKGROUND = "Background";
-    public static V1Deployment produceDeploymentBody(String name, String imageName, String kubernetesNamesSpace, int replicas, String reportUrl, int skillBias, int speedBias) {
+    public static V1Deployment produceDeploymentBody(String name, String imageName, String kubernetesNamesSpace, int replicas, String reportUrl, String reportUrlUser, String reportUrlPassword, int skillBias, int speedBias, int normalWaitTime, int normalServiceTime, int bounceWaitTime, AdminServiceConfig config) {
         V1Deployment returnObj = new V1Deployment();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
@@ -31,11 +34,17 @@ public class KubernetesBodyFactory {
 
         V1LabelSelector selector = new V1LabelSelector();
 
+        Map<String,String> matchLabels = new HashMap<>();
+        matchLabels.put("call-centre-component", "worker");
+        selector.setMatchLabels(matchLabels);
+
         spec.setSelector(selector);
 
         V1PodTemplateSpec template = new V1PodTemplateSpec();
 
         V1ObjectMeta podMetadata = new V1ObjectMeta();
+
+        podMetadata.setLabels(matchLabels);
 
         template.setMetadata(podMetadata);
 
@@ -52,6 +61,16 @@ public class KubernetesBodyFactory {
         urlEnvVar.setValue(reportUrl);
         env.add(urlEnvVar);
 
+        V1EnvVar urlUserEnvVar = new V1EnvVar();
+        urlUserEnvVar.setName("REPORT_URL_USER");
+        urlUserEnvVar.setValue(reportUrlUser);
+        env.add(urlUserEnvVar);
+
+        V1EnvVar urlPasswordEnvVar = new V1EnvVar();
+        urlPasswordEnvVar.setName("REPORT_URL_PASSWORD");
+        urlPasswordEnvVar.setValue(reportUrlPassword);
+        env.add(urlPasswordEnvVar);
+
         V1EnvVar skillEnvVar = new V1EnvVar();
         skillEnvVar.setName("SKILL_BIAS");
         skillEnvVar.setValue(Integer.valueOf(skillBias).toString());
@@ -62,32 +81,51 @@ public class KubernetesBodyFactory {
         speedEnvVar.setValue(Integer.valueOf(speedBias).toString());
         env.add(speedEnvVar);
 
+        V1EnvVar normalWaitTimeEnvVar = new V1EnvVar();
+        normalWaitTimeEnvVar.setName("NORMAL_WAIT_TIME");
+        normalWaitTimeEnvVar.setValue(Integer.valueOf(normalWaitTime).toString());
+        env.add(normalWaitTimeEnvVar);
+
+        V1EnvVar normalServiceTimeEnvVar = new V1EnvVar();
+        normalServiceTimeEnvVar.setName("NORMAL_SERVICE_TIME");
+        normalServiceTimeEnvVar.setValue(Integer.valueOf(normalServiceTime).toString());
+        env.add(normalServiceTimeEnvVar);
+
+        V1EnvVar bounceWaitTimeEnvVar = new V1EnvVar();
+        bounceWaitTimeEnvVar.setName("BOUNCE_WAIT_TIME");
+        bounceWaitTimeEnvVar.setValue(Integer.valueOf(bounceWaitTime).toString());
+        env.add(bounceWaitTimeEnvVar);
+
+        V1EnvVar queueAddressEnvVar = new V1EnvVar();
+        queueAddressEnvVar.setName("QUEUE_ADDRESS");
+        queueAddressEnvVar.setValue(config.getQueueAddress());
+        env.add(queueAddressEnvVar);
+
+        V1EnvVar queuePortEnvVar = new V1EnvVar();
+        queuePortEnvVar.setName("QUEUE_PORT");
+        queuePortEnvVar.setValue(Integer.valueOf(config.getQueuePort()).toString());
+        env.add(queuePortEnvVar);
+
+        V1EnvVar queueUserEnvVar = new V1EnvVar();
+        queueUserEnvVar.setName("QUEUE_USER");
+        queueUserEnvVar.setValue(config.getQueueUser());
+        env.add(queueUserEnvVar);
+
+        V1EnvVar queuePasswordEnvVar = new V1EnvVar();
+        queuePasswordEnvVar.setName("QUEUE_PASSWORD");
+        queuePasswordEnvVar.setValue(config.getQueuePassword());
+        env.add(queuePasswordEnvVar);
+
+        V1EnvVar queueNameEnvVar = new V1EnvVar();
+        queueNameEnvVar.setName("QUEUE_NAME");
+        queueNameEnvVar.setValue(config.getQueueName());
+        env.add(queueNameEnvVar);
+
         container.setEnv(env);
-
-        V1ContainerPort port = new V1ContainerPort();
-        port.setName("http");
-        port.setContainerPort(8080);
-        port.setProtocol("TCP");
-        ArrayList<V1ContainerPort> portList = new ArrayList<>();
-        portList.add(port);
-        container.setPorts(portList);
-
-        V1Probe probe = new V1Probe();
-        V1HTTPGetAction httpGet = new V1HTTPGetAction();
-        httpGet.setPath("/_/health");
-        httpGet.setPort(new IntOrString(8080));
-        probe.setHttpGet(httpGet);
-        probe.setInitialDelaySeconds(3);
-        probe.setPeriodSeconds(3);
-        container.setLivenessProbe(probe);
 
         ArrayList<V1Container> containerList = new ArrayList<>();
         containerList.add(container);
         podspec.setContainers(containerList);
-
-        V1LocalObjectReference objRef = new V1LocalObjectReference();
-        objRef.setName("worker-secret");
-        podspec.setImagePullSecrets(Arrays.asList(objRef));
 
         template.setSpec(podspec);
         spec.setTemplate(template);

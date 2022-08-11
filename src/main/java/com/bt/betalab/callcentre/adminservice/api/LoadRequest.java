@@ -35,7 +35,7 @@ public class LoadRequest {
         this.serviceTimeBias = simulation.getServiceTimeBias();
         this.understandingBias = simulation.getUnderstandingBias();
         this.simulationId = simulation.getSimulationId();
-        this.simulationStartTime     = simulation.getSimulationStartTime();
+        this.simulationStartTime = simulation.getSimulationStartTime();
     }
 
     public boolean isOn() {

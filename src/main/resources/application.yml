@@ -8,7 +8,7 @@ spring:
     active: "dev"
   security:
     basic:
-      enabled: false
+      enabled: true
     oauth2:
       client:
         registration:
@@ -43,18 +43,18 @@ management:
 
 adminservice:
   queueAddress: SETINENV
-  queuePort: SETINENV
+  queuePortString: SETINENV
   queueUser: SETINENV
   queuePassword: SETINENV
   queueName: SETINENV
   loadGeneratorUrl: SETINENV
   callReportingUrl: SETINENV
-  kubernetesAPIAddress: SETINENV
-  kubernetesAPIPort: SETINENV
   kubernetesToken: SETINENV
   kubernetesNameSpace: SETINENV
   workerImage: SETINENV
   myReportingUrl: SETINENV
+  myReportingUrlUser: SETINENV
+  myReportingUrlPassword: SETINENV
 
 ---
 #=======================================================================================
@@ -65,6 +65,17 @@ spring:
 server:
   port: 8080
 
+adminservice:
+  queueAddress: digitaltwin-rabbitmq.project-call-centre.svc.cluster.local
+  queuePortString: 5672
+  queueUser: user
+  queuePassword: 6MLtpE3vhdGkYCT8
+  queueName: calls
+  kubernetesNameSpace: project-call-centre
+  workerImage: registry.docker.nat.bt.com/betalab-callcentre-digitaltwin/callcentre-digitaltwin-worker:6f8a43837ec68ec277197b625e18103a481f347a
+  myReportingUrl: http://localhost:8080/
+  myReportingUrlUser: user
+  myReportingUrlPassword: testpassword
 
 ---
 #=======================================================================================

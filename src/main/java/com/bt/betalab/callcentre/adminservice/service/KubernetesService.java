@@ -34,8 +34,6 @@ public class KubernetesService {
 
     AppsV1Api appsV1APIClient;
 
-    boolean validConfig = false;
-
     public KubernetesService(AdminServiceConfig config, ApiClient apiClient) {
         Configuration.setDefaultApiClient(apiClient);
         apiClient.setDebugging(System.getenv("DEBUG_MODE") != null);
@@ -43,14 +41,14 @@ public class KubernetesService {
         this.kubernetesNameSpace = config.getKubernetesNameSpace();
     }
 
-    public void createWorkers(int target, int skillBias, int speedBias, AdminServiceConfig config) throws AdminServiceException {
-        if (validConfig) {
+    public void createWorkers(int target, int skillBias, int speedBias, int normalWaitTime, int normalServiceTime, int bounceWaitTime, AdminServiceConfig config) throws AdminServiceException {
+        if (kubernetesNameSpace != null) {
             try {
                 if (existsDeployment()) {
                     V1Patch body = KubernetesBodyFactory.producePatchBody(target);
                     appsV1APIClient.patchNamespacedDeploymentScale("workers", kubernetesNameSpace, body, "false", null, null, null);
                 } else {
-                    V1Deployment body = KubernetesBodyFactory.produceDeploymentBody("workers", config.getWorkerImage(), kubernetesNameSpace, target, config.getMyReportingUrl(), skillBias, speedBias);
+                    V1Deployment body = KubernetesBodyFactory.produceDeploymentBody("workers", config.getWorkerImage(), kubernetesNameSpace, target, config.getMyReportingUrl(), config.getMyReportingUrlUser(), config.getMyReportingUrlPassword(), skillBias, speedBias, normalWaitTime, normalServiceTime, bounceWaitTime, config);
                     appsV1APIClient.createNamespacedDeployment(kubernetesNameSpace, body, "false", null, null);
                 }
                 if (!waitForWorkersToArrive(target)) { throw new AdminServiceException(); }
@@ -65,9 +63,9 @@ public class KubernetesService {
     }
 
     public void deleteWorkers() throws AdminServiceException {
-        if (validConfig) {
+        if (kubernetesNameSpace != null) {
             try {
-                if (!existsDeployment()) {
+                if (existsDeployment()) {
                     V1DeleteOptions options = KubernetesBodyFactory.produceDeleteOptionsBody();
                     appsV1APIClient.deleteNamespacedDeployment("workers", kubernetesNameSpace, "true", null, 0, false, KubernetesService.PROPAGATION_POLICY_BACKGROUND, options);
                 }
@@ -82,13 +80,14 @@ public class KubernetesService {
     }
 
     public int activeWorkers() throws AdminServiceException {
-        if (validConfig) {
+        if (kubernetesNameSpace != null) {
             try {
                 if (existsDeployment()) {
                     return appsV1APIClient.readNamespacedDeploymentStatus("workers", kubernetesNameSpace, "false")
                             .getStatus()
                             .getAvailableReplicas();
                 }
+                return 0;
             } catch (ApiException e) {
                 Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
             }
@@ -115,7 +114,7 @@ public class KubernetesService {
     }
 
     public boolean existsDeployment() throws AdminServiceException {
-        if (validConfig) {
+        if (kubernetesNameSpace != null) {
             try {
                 appsV1APIClient.readNamespacedDeployment("workers", kubernetesNameSpace, "false", null, null);
                 return true;
