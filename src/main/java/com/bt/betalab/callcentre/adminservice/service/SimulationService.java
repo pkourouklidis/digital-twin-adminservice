@@ -149,10 +149,11 @@ public class SimulationService {
             channel.queuePurge(config.getQueueName());
         } catch (IOException e) {
             Logger.log(Messages.CHANNELERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);
+            throw new AdminServiceException();
         } catch (TimeoutException e) {
             Logger.log(Messages.CONNECTIONERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
     }
 
     public int getQueueDepth(AdminServiceConfig config) throws AdminServiceException {

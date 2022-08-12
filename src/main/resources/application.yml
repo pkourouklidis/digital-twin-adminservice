@@ -49,7 +49,6 @@ adminservice:
   queueName: SETINENV
   loadGeneratorUrl: SETINENV
   callReportingUrl: SETINENV
-  kubernetesToken: SETINENV
   kubernetesNameSpace: SETINENV
   workerImage: SETINENV
   myReportingUrl: SETINENV
