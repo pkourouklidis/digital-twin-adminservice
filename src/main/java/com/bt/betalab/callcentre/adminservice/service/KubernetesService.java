@@ -69,6 +69,7 @@ public class KubernetesService {
                     V1DeleteOptions options = KubernetesBodyFactory.produceDeleteOptionsBody();
                     appsV1APIClient.deleteNamespacedDeployment("workers", kubernetesNameSpace, "true", null, 0, false, KubernetesService.PROPAGATION_POLICY_BACKGROUND, options);
                 }
+                if (!waitForWorkersToLeave()) { throw new AdminServiceException(); }
             } catch (ApiException e) {
                 Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
                 throw new AdminServiceException();
@@ -126,5 +127,21 @@ public class KubernetesService {
             Logger.log(Messages.INVALIDKUBERNETESCONFIGURATIONMESSAGE, LogLevel.ERROR);
         }
         throw new AdminServiceException();
+    }
+
+    public boolean waitForWorkersToLeave() {
+        int timeOut = 300000; // Timeout is five minutes
+        int currentTime = 0;
+
+        while (currentTime < timeOut) {
+            try {
+                Thread.sleep(1000);
+                currentTime += 1000;
+                if (!existsDeployment()) { return true; };
+            } catch (Exception e) {
+                Logger.log(Messages.KUBEAPIEXCEPTIONMESSAGE + " (" + e.getMessage() + ")", LogLevel.ERROR);
+            }
+        }
+        return false;
     }
 }

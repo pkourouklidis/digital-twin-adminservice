@@ -70,11 +70,14 @@ adminservice:
   queueUser: user
   queuePassword: 6MLtpE3vhdGkYCT8
   queueName: calls
+  loadGeneratorUrl: https://localhost:8081/api/v1/generate
+  callReportingURL: https://dashboard-service.dashboard.callcentre.betalab.rp.bt.com/api/v1/report
   kubernetesNameSpace: project-call-centre
   workerImage: registry.docker.nat.bt.com/betalab-callcentre-digitaltwin/callcentre-digitaltwin-worker:6f8a43837ec68ec277197b625e18103a481f347a
-  myReportingUrl: http://localhost:8080/
-  myReportingUrlUser: user
-  myReportingUrlPassword: testpassword
+  myReportingURL: https://admin-service.digitaltwin.callcentre.betalab.rp.bt.com/api/v1/report
+  myReportingUser: worker
+  myReportingPassword: w0rk3rP4ssW0rd
+
 
 ---
 #=======================================================================================
