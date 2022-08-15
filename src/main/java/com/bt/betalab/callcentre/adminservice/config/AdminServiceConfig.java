@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 public class AdminServiceConfig {
     private String queueAddress;
     private String queuePortString;
+
+    private String queueApiPortString;
     private String queueUser;
     private String queuePassword;
     private String queueName;
@@ -42,6 +44,18 @@ public class AdminServiceConfig {
     public int getQueuePort() {
         try {
             return Integer.valueOf(queuePortString);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    public void setQueueApiPortString(String queueApiPort) {
+        this.queueApiPortString = queueApiPort;
+    }
+
+    public int getQueueApiPort() {
+        try {
+            return Integer.valueOf(queueApiPortString);
         } catch (NumberFormatException e) {
             return -1;
         }

@@ -8,6 +8,7 @@
 package com.bt.betalab.callcentre.adminservice.service;
 
 import com.bt.betalab.callcentre.adminservice.api.LoadRequest;
+import com.bt.betalab.callcentre.adminservice.api.MessageInfo;
 import com.bt.betalab.callcentre.adminservice.api.SimulationDetails;
 import com.bt.betalab.callcentre.adminservice.api.SimulationRequest;
 import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
@@ -17,7 +18,6 @@ import com.bt.betalab.callcentre.adminservice.logging.Logger;
 import com.bt.betalab.callcentre.adminservice.logging.Messages;
 import com.bt.betalab.callcentre.adminservice.messaging.WebClientFactory;
 import com.bt.betalab.callcentre.adminservice.model.Simulation;
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -54,7 +55,9 @@ public class SimulationService {
 
     public void updateSimulation(SimulationRequest request, AdminServiceConfig config) throws AdminServiceException {
         if (simulation.getStatus().equals("running") || simulation.getStatus().equals("paused")) {
-            if (simulation.getStatus().equals("running")) { pauseSimulation(config); }
+            if (simulation.getStatus().equals("running")) {
+                pauseSimulation(config);
+            }
             simulation.setStatus("updating");
             simulation.update(request);
             startSimulation(config);
@@ -64,7 +67,7 @@ public class SimulationService {
     }
 
     public void startSimulation(AdminServiceConfig config) throws AdminServiceException {
-        if (simulation.getStatus().equals("paused")) {
+        if (simulation.getStatus().equals("paused") || simulation.getStatus().equals("updating")) {
             simulation.setStatus("starting");
             startStopWorkers(true, config);
             startStopLoadGenerator(true, config);
@@ -157,26 +160,22 @@ public class SimulationService {
     }
 
     public int getQueueDepth(AdminServiceConfig config) throws AdminServiceException {
-        ConnectionFactory conFactory = new ConnectionFactory();
-        conFactory.setHost(config.getQueueAddress());
-        conFactory.setPort(config.getQueuePort());
-        conFactory.setUsername(config.getQueueUser());
-        conFactory.setPassword(config.getQueuePassword());
-        conFactory.setAutomaticRecoveryEnabled(true);
+        DefaultUriBuilderFactory urlFactory = new DefaultUriBuilderFactory("http://" + config.getQueueAddress() + ":" + config.getQueueApiPort() + "/api/queues/%2F/" + config.getQueueName());
+        urlFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+        ResponseEntity<MessageInfo> reply = WebClient.builder()
+                .uriBuilderFactory(urlFactory)
+                .build()
+                .get()
+                .headers(headers -> headers.setBasicAuth(config.getQueueUser(), config.getQueuePassword()))
+                .retrieve()
+                .toEntity(MessageInfo.class)
+                .block();
 
-        Logger.log(Messages.CONNECTINGTOMESSAGEQUEUEMESSAGE + config.getQueueAddress() + ":" + config.getQueuePort(), LogLevel.INFO);
-
-        try {
-            Connection connection = conFactory.newConnection();
-            Channel channel = connection.createChannel();
-
-            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(config.getQueueName(), true, false, false, null);
-            return declareOk.getMessageCount();
-        } catch (IOException e) {
-            Logger.log(Messages.CHANNELERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);
-        } catch (TimeoutException e) {
-            Logger.log(Messages.CONNECTIONERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);
+        if (!reply.getStatusCode().is2xxSuccessful()) {
+            Logger.log("Failed to update the load generator. Error code: " + reply.getStatusCodeValue(), LogLevel.ERROR);
+            throw new AdminServiceException();
         }
-        throw new AdminServiceException();
+
+        return reply.getBody().getMessages_ready() + reply.getBody().getMessages_unacknowledged();
     }
 }

@@ -65,8 +65,9 @@ server:
   port: 8080
 
 adminservice:
-  queueAddress: digitaltwin-rabbitmq.project-call-centre.svc.cluster.local
+  queueAddress: localhost
   queuePortString: 5672
+  queueApiPortString: 15672
   queueUser: user
   queuePassword: 6MLtpE3vhdGkYCT8
   queueName: calls
