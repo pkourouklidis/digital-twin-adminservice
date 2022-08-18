@@ -33,9 +33,6 @@ public class Simulation {
     private int normalServiceTime;
 
     private int bounceWaitTime;
-
-    private int queueDepth = 0;
-    private int activeWorkers = 0;
     private String status = "stopped";
 
     public Simulation() {}
@@ -118,22 +115,6 @@ public class Simulation {
 
     public int getBounceWaitTime() {
         return bounceWaitTime;
-    }
-
-    public int getQueueDepth() {
-        return queueDepth;
-    }
-
-    public int getActiveWorkers() {
-        return activeWorkers;
-    }
-
-    public void setQueueDepth(int queueDepth) {
-        this.queueDepth = queueDepth;
-    }
-
-    public void setActiveWorkers(int activeWorkers) {
-        this.activeWorkers = activeWorkers;
     }
 
     public String getStatus() {

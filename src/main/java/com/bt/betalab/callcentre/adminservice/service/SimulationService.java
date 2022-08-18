@@ -7,10 +7,7 @@
 
 package com.bt.betalab.callcentre.adminservice.service;
 
-import com.bt.betalab.callcentre.adminservice.api.LoadRequest;
-import com.bt.betalab.callcentre.adminservice.api.MessageInfo;
-import com.bt.betalab.callcentre.adminservice.api.SimulationDetails;
-import com.bt.betalab.callcentre.adminservice.api.SimulationRequest;
+import com.bt.betalab.callcentre.adminservice.api.*;
 import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
 import com.bt.betalab.callcentre.adminservice.exceptions.AdminServiceException;
 import com.bt.betalab.callcentre.adminservice.logging.LogLevel;
@@ -100,9 +97,17 @@ public class SimulationService {
         }
     }
 
-    public Simulation getSimulationStatus(AdminServiceConfig config) throws AdminServiceException {
-        simulation.setActiveWorkers(getActiveWorkerCount());
-        simulation.setQueueDepth(getQueueDepth(config));
+    public SimulationStatus getSimulationStatus(AdminServiceConfig config) throws AdminServiceException {
+        SimulationStatus status = new SimulationStatus();
+        status.setStatus(simulation.getStatus());
+        status.setActiveWorkers(getActiveWorkerCount());
+        status.setQueueDepth(getQueueDepth(config));
+        status.setSimulationStartTime(simulation.getSimulationStartTime());
+        status.setSimulationId(simulation.getSimulationId());
+        return status;
+    }
+
+    public Simulation getSimulationSettings() throws AdminServiceException {
         return simulation;
     }
 

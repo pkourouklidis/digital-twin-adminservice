@@ -10,6 +10,7 @@ package com.bt.betalab.callcentre.adminservice.controller;
 import com.bt.betalab.callcentre.adminservice.api.CallResult;
 import com.bt.betalab.callcentre.adminservice.api.SimulationDetails;
 import com.bt.betalab.callcentre.adminservice.api.SimulationRequest;
+import com.bt.betalab.callcentre.adminservice.api.SimulationStatus;
 import com.bt.betalab.callcentre.adminservice.config.AdminServiceConfig;
 import com.bt.betalab.callcentre.adminservice.exceptions.AdminServiceException;
 import com.bt.betalab.callcentre.adminservice.model.Simulation;
@@ -82,9 +83,18 @@ public class AdminServiceController {
     }
 
     @GetMapping(produces = "application/json", value = "api/v1/simulation/status")
-    public ResponseEntity<Simulation> getSimulationStatus()  {
+    public ResponseEntity<SimulationStatus> getSimulationStatus()  {
         try {
             return ResponseEntity.ok(simulationService.getSimulationStatus(config));
+        } catch (AdminServiceException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping(produces = "application/json", value = "api/v1/simulation/settings")
+    public ResponseEntity<Simulation> getSimulationSettings()  {
+        try {
+            return ResponseEntity.ok(simulationService.getSimulationSettings());
         } catch (AdminServiceException e) {
             return ResponseEntity.internalServerError().build();
         }
