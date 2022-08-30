@@ -154,7 +154,7 @@ public class SimulationService {
         try {
             Connection connection = conFactory.newConnection();
             Channel channel = connection.createChannel();
-            channel.queuePurge(config.getQueueName());
+            channel.queueDelete(config.getQueueName());
         } catch (IOException e) {
             Logger.log(Messages.CHANNELERRORMESSAGEQUEUEMESSAGE + e.getMessage(), LogLevel.ERROR);
             throw new AdminServiceException();
