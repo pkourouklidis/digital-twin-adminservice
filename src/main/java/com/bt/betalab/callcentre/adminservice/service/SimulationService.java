@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.io.IOException;
@@ -167,23 +168,25 @@ public class SimulationService {
     public int getQueueDepth(AdminServiceConfig config) throws AdminServiceException {
         DefaultUriBuilderFactory urlFactory = new DefaultUriBuilderFactory("http://" + config.getQueueAddress() + ":" + config.getQueueApiPort() + "/api/queues/%2F/" + config.getQueueName());
         urlFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        ResponseEntity<MessageInfo> reply = WebClient.builder()
-                .uriBuilderFactory(urlFactory)
-                .build()
-                .get()
-                .headers(headers -> headers.setBasicAuth(config.getQueueUser(), config.getQueuePassword()))
-                .retrieve()
-                .toEntity(MessageInfo.class)
-                .block();
 
-        if (!reply.getStatusCode().is2xxSuccessful()) {
-            if (reply.getStatusCodeValue() == 404) {
-                return 0;
+        try {
+            ResponseEntity<MessageInfo> reply = WebClient.builder()
+                    .uriBuilderFactory(urlFactory)
+                    .build()
+                    .get()
+                    .headers(headers -> headers.setBasicAuth(config.getQueueUser(), config.getQueuePassword()))
+                    .retrieve()
+                    .toEntity(MessageInfo.class)
+                    .block();
+            return reply.getBody().getMessages_ready() + reply.getBody().getMessages_unacknowledged();
+        } catch (WebClientResponseException e) {
+            if (!e.getStatusCode().is2xxSuccessful()) {
+                if (e.getStatusCode().value() == 404) {
+                    return 0;
+                }
+                Logger.log("Failed to update the load generator. Error code: " + e.getStatusCode().value(), LogLevel.ERROR);
             }
-            Logger.log("Failed to update the load generator. Error code: " + reply.getStatusCodeValue(), LogLevel.ERROR);
-            throw new AdminServiceException();
         }
-
-        return reply.getBody().getMessages_ready() + reply.getBody().getMessages_unacknowledged();
+        throw new AdminServiceException();
     }
 }
