@@ -177,6 +177,9 @@ public class SimulationService {
                 .block();
 
         if (!reply.getStatusCode().is2xxSuccessful()) {
+            if (reply.getStatusCodeValue() == 404) {
+                return 0;
+            }
             Logger.log("Failed to update the load generator. Error code: " + reply.getStatusCodeValue(), LogLevel.ERROR);
             throw new AdminServiceException();
         }
