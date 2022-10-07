@@ -84,9 +84,10 @@ public class KubernetesService {
         if (kubernetesNameSpace != null) {
             try {
                 if (existsDeployment()) {
-                    return appsV1APIClient.readNamespacedDeploymentStatus("workers", kubernetesNameSpace, "false")
+                    Integer availableWorkers = appsV1APIClient.readNamespacedDeploymentStatus("workers", kubernetesNameSpace, "false")
                             .getStatus()
                             .getAvailableReplicas();
+                    if (availableWorkers != null) return availableWorkers;
                 }
                 return 0;
             } catch (ApiException e) {
